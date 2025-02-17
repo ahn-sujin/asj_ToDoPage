@@ -1,5 +1,11 @@
 import { create } from "zustand";
-import { removeAtIndex, insertAtIndex, arrayMove } from "@/utils/array";
+import {
+  getBoardWithTodoId,
+  getBoardWithBoardIdOrTodoId,
+  moveTodoToAnotherBoard,
+  moveTodoWithinBoard,
+  moveBoard,
+} from "@/utils/drag";
 import { BoardData, TodoData } from "@/types";
 
 interface BoardStore {
@@ -31,43 +37,21 @@ const useBoardStore = create<BoardStore>((set) => ({
    */
   startDrag: (activeId, overId) => {
     set((state) => {
-      const activeBoard = state.boardList.find((board) =>
-        board.todos.some((todo) => todo.id === activeId)
-      );
-      const overBoard = state.boardList.find((board) =>
-        board.todos.some((todo) => todo.id === overId)
-      );
+      const activeBoard = getBoardWithTodoId(state.boardList, activeId);
+      const overBoard = getBoardWithBoardIdOrTodoId(state.boardList, overId);
 
-      if (activeBoard && overBoard && activeBoard !== overBoard) {
-        const activeIndex = activeBoard.todos.findIndex(
-          (todo) => todo.id === activeId
-        );
-        const overIndex = overBoard.todos.findIndex(
-          (todo) => todo.id === overId
-        );
-        const movedTodo = activeBoard.todos[activeIndex];
+      // 이동이 없는 경우 (같은)
+      if (!activeBoard || !overBoard || activeBoard === overBoard) return state;
 
-        const updatedBoardList = state.boardList.map((board) => {
-          if (board.id === activeBoard.id) {
-            return {
-              ...board,
-              todos: removeAtIndex(board.todos, activeIndex),
-            };
-          }
-          if (board.id === overBoard.id) {
-            return {
-              ...board,
-              todos: insertAtIndex(board.todos, overIndex, movedTodo),
-            };
-          }
-          return board;
-        });
-
-        return {
-          boardList: updatedBoardList,
-        };
-      }
-      return state;
+      return {
+        boardList: moveTodoToAnotherBoard(
+          state.boardList,
+          activeBoard,
+          overBoard,
+          activeId,
+          overId
+        ),
+      };
     });
   },
 
@@ -78,49 +62,42 @@ const useBoardStore = create<BoardStore>((set) => ({
    */
   endDrag: (activeId, overId) => {
     set((state) => {
-      const activeBoard = state.boardList.find(
-        (board) => board.id === activeId
+      const activeBoard = getBoardWithBoardIdOrTodoId(
+        state.boardList,
+        activeId
       );
-      const overBoard = state.boardList.find((board) => board.id === overId);
+      const overBoard = getBoardWithBoardIdOrTodoId(state.boardList, overId);
 
-      if (activeBoard && overBoard && activeBoard !== overBoard) {
-        // 보드 자체를 드래그한 경우
-        return {
-          boardList: arrayMove(
-            state.boardList,
-            state.boardList.findIndex((board) => board.id === activeBoard.id),
-            state.boardList.findIndex((board) => board.id === overBoard.id)
-          ),
-        };
-      } else {
-        // 보드 내부 todo를 드래그한 경우
-        const activeContainer = state.boardList.find((board) =>
-          board.todos.some((todo) => todo.id === activeId)
-        );
-        const overContainer = state.boardList.find((board) =>
-          board.todos.some((todo) => todo.id === overId)
-        );
+      // 이동이 없는 경우
+      if (!activeBoard || !overBoard) return state;
 
-        if (activeContainer && overContainer) {
-          return {
-            boardList: state.boardList.map((board: BoardData) => {
-              if (board.id === overContainer.id) {
-                return {
-                  ...board,
-                  todos: arrayMove(
-                    board.todos,
-                    board.todos.findIndex((todo) => todo.id === activeId),
-                    board.todos.findIndex((todo) => todo.id === overId)
-                  ),
-                };
-              }
-              return board;
-            }),
-          };
-        }
+      // 1. 보드 자체를 이동하는 경우
+      if (activeBoard.id === activeId && overBoard.id === overId) {
+        return { boardList: moveBoard(state.boardList, activeId, overId) };
       }
 
-      return state;
+      // 2. 같은 보드 내에서 todo를 이동한 경우
+      if (activeBoard.id === overBoard.id) {
+        return {
+          boardList: moveTodoWithinBoard(
+            state.boardList,
+            overBoard,
+            activeId,
+            overId
+          ),
+        };
+      }
+
+      // 3. 다른 보드로 todo를 이동한 경우
+      return {
+        boardList: moveTodoToAnotherBoard(
+          state.boardList,
+          activeBoard,
+          overBoard,
+          activeId,
+          overId
+        ),
+      };
     });
   },
 
