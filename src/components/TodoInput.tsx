@@ -82,7 +82,7 @@ export default function TodoInput({ boardId }: TodoInputProps) {
           onClick={() => setIsAddingTodo(true)}
           className="w-full"
         >
-          + 할일 등록하기
+          + 할 일 등록하기
         </button>
       )}
     </div>

@@ -27,6 +27,7 @@ interface BoardStore {
 const useBoardStore = create<BoardStore>((set) => ({
   /** 보드 목록 */
   boardList: [],
+
   /** 보드 목록 설정 함수 */
   setBoardList: (boardList) => set({ boardList }),
 
