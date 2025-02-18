@@ -29,7 +29,7 @@ const useBoardStore = create<BoardStore>((set) => ({
   boardList: [],
 
   /** 보드 목록 설정 함수 */
-  setBoardList: (boardList) => set({ boardList }),
+  setBoardList: (boardList) => set((state) => ({ ...state, boardList })),
 
   /**
    * Todo를 다른 보드로 옮길 때, 드래그한 요소를 원하는 위치로 이동을 처리하는 함수
