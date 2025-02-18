@@ -1,6 +1,5 @@
-import "./globals.css";
-
 import { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Kanban Todo List | FE_안수진",

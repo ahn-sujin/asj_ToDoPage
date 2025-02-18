@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -19,8 +19,10 @@ import { throttle } from "lodash";
 
 import useBoardStore from "@/stores/useBoardStore";
 import Board from "@/components/Board";
+import Loader from "@/components/Loader";
 
 export default function Home() {
+  const [isLoading, setIsLoading] = useState(true);
   const { boardList, addBoard, startDrag, endDrag, setBoardList } =
     useBoardStore();
 
@@ -59,11 +61,14 @@ export default function Home() {
     if (savedBoardList) {
       setBoardList(JSON.parse(savedBoardList));
     }
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("boardList", JSON.stringify(boardList));
-  }, [boardList]);
+    if (!isLoading) {
+      localStorage.setItem("boardList", JSON.stringify(boardList));
+    }
+  }, [boardList, isLoading]);
 
   return (
     <DndContext
@@ -83,10 +88,9 @@ export default function Home() {
             보드 생성
           </button>
         </header>
-        {boardList.length === 0 ? (
-          <p className="text-gray-500">먼저 보드를 생성해주세요.</p>
-        ) : (
-          <section className="overflow-x-auto w-full">
+        <section className="overflow-x-auto w-full">
+          {isLoading && <Loader />}
+          {!isLoading && boardList.length > 0 && (
             <SortableContext items={boardList.map((board) => board.id)}>
               <ul className="flex gap-6 items-start w-max">
                 {boardList.map((board) => (
@@ -99,8 +103,11 @@ export default function Home() {
                 ))}
               </ul>
             </SortableContext>
-          </section>
-        )}
+          )}
+          {!isLoading && boardList.length === 0 && (
+            <p className="text-gray-500">먼저 보드를 생성해주세요.</p>
+          )}
+        </section>
       </div>
     </DndContext>
   );
