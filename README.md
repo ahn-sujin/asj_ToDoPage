@@ -49,6 +49,7 @@
 │  │  └─ page.tsx
 │  ├─ components
 │  │  ├─ Board.tsx
+│  │  ├─ Loader.tsx
 │  │  ├─ Todo.tsx
 │  │  └─ TodoInput.tsx
 │  ├─ hooks
@@ -77,6 +78,8 @@
   - 보드 컴포넌트
   - 보드 수정, 삭제 기능 구현
   - 할 일 및 할 일 입력 컴포넌트 랜더링
+- `Loader.tsx`
+  - 데이터 로딩 컴포넌트 
 - `Todo.tsx`
   - 할 일 컴포넌트
   - 할 일 수정 및 삭제 기능 구현
